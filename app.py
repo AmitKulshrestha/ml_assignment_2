@@ -86,24 +86,56 @@ if 'selected_model' not in st.session_state:
 # Load pre-trained models and scaler
 @st.cache_resource
 def load_models_and_scaler():
+    """Load models with proper path resolution"""
     models = {}
-    model_names = ['logistic_regression', 'decision_tree', 'k_nearest_neighbor',
+    model_names = ['logistic_regression', 'decision_tree', 'k_nearest_neighbor', 
                    'naive_bayes', 'random_forest', 'xgboost']
-
+    
     try:
+        # Get the absolute path to the models directory
+        import os
+        import sys
+        
+        # This works both locally and on Streamlit Cloud
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        models_dir = os.path.join(current_dir, 'models')
+        
+        # Debug: Print paths to see what's happening
+        print(f"Current directory: {current_dir}")
+        print(f"Models directory: {models_dir}")
+        print(f"Models directory exists: {os.path.exists(models_dir)}")
+        
+        if not os.path.exists(models_dir):
+            st.error(f"❌ Models directory not found at: {models_dir}")
+            return None, None
+        
+        # List files in models directory
+        files = os.listdir(models_dir)
+        print(f"Files in models directory: {files}")
+        
         # Load scaler
-        scaler = joblib.load('models/scaler.pkl')
-
+        scaler_path = os.path.join(models_dir, 'scaler.pkl')
+        if os.path.exists(scaler_path):
+            scaler = joblib.load(scaler_path)
+            print("✅ Scaler loaded successfully")
+        else:
+            st.error(f"❌ Scaler not found at: {scaler_path}")
+            return None, None
+        
         # Load models
         for name in model_names:
-            try:
-                models[name] = joblib.load(f'models/{name}.pkl')
-            except:
-                st.warning(f"Model {name} not found. Please run train_models.py first.")
+            model_path = os.path.join(models_dir, f'{name}.pkl')
+            if os.path.exists(model_path):
+                models[name] = joblib.load(model_path)
+                print(f"✅ Loaded {name}")
+            else:
+                st.error(f"❌ Model {name} not found at: {model_path}")
                 return None, None
+        
         return models, scaler
+        
     except Exception as e:
-        st.error(f"Error loading models: {str(e)}")
+        st.error(f"❌ Error loading models: {str(e)}")
         return None, None
 
 # Load model comparison results
