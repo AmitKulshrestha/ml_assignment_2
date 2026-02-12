@@ -122,7 +122,7 @@ with st.sidebar:
 
     # Dataset upload section
     st.markdown("### 📁 Dataset Upload")
-    st.mark("*Upload test data (CSV format)*")
+    st.markdown("*Upload test data (CSV format)*")
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv", key="uploader")
 
     # Model selection
